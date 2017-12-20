@@ -142,7 +142,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		}
 	}
 
-	step = step /1;
+	step = step /0.2;
 
 
 
@@ -442,43 +442,108 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		}	
 	}
 	qrcode::carving_down(global, qr_verticals);
+	verticles.block(0, 0, global.qr_verticals.rows(), 3) = qr_verticals;
 
+	std::vector<qrcode::SMesh> appendix;
 	for (int i = 0; i < global.black_module_segments.size(); i++) {
 
 		Eigen::Vector3i segment = global.black_module_segments[i];
 		int y = segment(0);
 		int x = segment(1);
 		int length = segment(2);
-
+		
 		if (length>1) {
-			int x_end = x + length - 1;
+			int temp_len = length;
+			
+			if ((x + length) == global.info.pixels.size()) temp_len = 4;
+
+			Eigen::MatrixXd append_verticals(8 * scale*scale*temp_len, 3);
+			Eigen::MatrixXi append_facets(4 * scale*scale*temp_len, 3);
+			
 			for (int u = 0; u < scale; u++) {
-				int lower_index = global.indicator[(y + border)*scale + u][(x_end + border)*scale + scale - 1](1);
-				int upper_index = global.indicator[(y + border)*scale + u][(x_end + border + 1)*scale](1);
 
-				Eigen::Vector3d upper_left_point = qr_verticals.row(4 * upper_index).transpose();
-				Eigen::Vector3d upper_right_point = qr_verticals.row(4 * upper_index + 1).transpose();
+				int lower_index = global.indicator[(y + border)*scale + u][(x + length - 1 + border)*scale + scale - 1](1);
+				int upper_index = global.indicator[(y + border)*scale + u][(x + length + border)*scale](1);
 
-				Eigen::Vector3d lower_left_point = qr_verticals.row(4 * lower_index + 2).transpose();
-				Eigen::Vector3d lower_right_point = qr_verticals.row(4 * lower_index + 3).transpose();
+				double upper_left_point = qr_verticals(4 * upper_index, 2);
+				double upper_right_point = qr_verticals(4 * upper_index + 1, 2);
 
-				Eigen::Vector3d left_dir = (upper_left_point - upper_source.cast<double>());
-				Eigen::Vector3d right_dir = (upper_right_point - upper_source.cast<double>());
+				double lower_left_point = qr_verticals(4 * lower_index + 2, 2);
+				double lower_right_point = qr_verticals(4 * lower_index + 3, 2);
 
-				double r_left = (lower_left_point(2) - upper_left_point(2)) / left_dir(2);
-				double r_right = (lower_right_point(2) - upper_right_point(2)) / right_dir(2);
+				int seg_size = scale*temp_len;
 
-				qr_verticals.row(4 * lower_index + 2) = (upper_left_point + r_left*left_dir).transpose();
-				qr_verticals.row(4 * lower_index + 3) = (upper_right_point + r_right*right_dir).transpose();
+				double diff_left = (lower_left_point - upper_left_point) / seg_size;
+				double diff_right = (lower_right_point - upper_right_point) / seg_size;
 
+				for (int v = 0; v < seg_size; v++) {
+					int index_seg = u*seg_size + v;
+
+					int r = (y + border)*scale+u;
+					int c = (x + length + border)*scale + v;
+
+					append_verticals.row(4 * index_seg) << global.hit_matrix(r*(qr_size + 1) + c,0), global.hit_matrix(r*(qr_size + 1) + c, 1),lower_left_point;
+					append_verticals.row(4 * index_seg + 1) <<global.hit_matrix((r + 1)*(qr_size + 1) + c,0), global.hit_matrix((r + 1)*(qr_size + 1) + c, 1),lower_right_point;
+					append_verticals.row(4 * index_seg + 2) <<global.hit_matrix(r*(qr_size + 1) + c + 1,0), global.hit_matrix(r*(qr_size + 1) + c + 1, 1), lower_left_point;
+					append_verticals.row(4 * index_seg + 3)<< global.hit_matrix((r + 1)*(qr_size + 1) + c + 1,0), global.hit_matrix((r + 1)*(qr_size + 1) + c + 1, 1),lower_right_point;
+
+					append_facets.row(2 * index_seg) << 4 * index_seg, 4 * index_seg + 1, 4 * index_seg + 2;
+					append_facets.row(2 * index_seg + 1) << 4 * index_seg + 1, 4 * index_seg + 3, 4 * index_seg + 2;
+
+
+					
+					append_verticals.row(4 * scale*seg_size + 4 * index_seg) <<
+						global.hit_matrix(r*(qr_size + 1) + c, 0),
+						global.hit_matrix(r*(qr_size + 1) + c, 1),
+						upper_left_point + diff_right*v;
+					append_verticals.row(4 * scale*seg_size + 4 * index_seg + 1) <<
+						global.hit_matrix((r + 1)*(qr_size + 1) + c, 0),
+						global.hit_matrix((r + 1)*(qr_size + 1) + c, 1),
+						upper_right_point + diff_right*v;
+					append_verticals.row(4 * scale*seg_size + 4 * index_seg + 2) <<
+						global.hit_matrix(r*(qr_size + 1) + c + 1, 0),
+						global.hit_matrix(r*(qr_size + 1) + c + 1, 1),
+						upper_left_point + diff_left*(v+1);
+					append_verticals.row(4 * scale*seg_size + 4 * index_seg + 3) <<
+						global.hit_matrix((r + 1)*(qr_size + 1) + c + 1, 0),
+						global.hit_matrix((r + 1)*(qr_size + 1) + c + 1, 1),
+						upper_right_point + diff_right*(v+1);
+
+					append_facets.row(2 * scale*seg_size + 2 * index_seg) << 4 * scale*seg_size + 4 * index_seg, 4 * scale*seg_size + 4 * index_seg + 2, 4 * scale*seg_size + 4 * index_seg + 1;
+					append_facets.row(2 * scale*seg_size + 2 * index_seg + 1) << 4 * scale*seg_size + 4 * index_seg + 1, 4 * scale*seg_size + 4 * index_seg + 2, 4 * scale*seg_size + 4 * index_seg + 3;
+
+					/*if (u == 0) {
+						facets.row(global.anti_indicatior.size() * 2 + 4 * (r*qr_size + c) + 2) << 0, 0, 0;
+						facets.row(global.anti_indicatior.size() * 2 + 4 * ((r - 1)*qr_size + c) + 3) << 0, 0, 0;
+					}
+
+					if (u == (scale - 1)) {
+						facets.row(global.anti_indicatior.size() * 2 + 4 * (r*qr_size + c) + 3) << 0, 0, 0;
+						facets.row(global.anti_indicatior.size() * 2 + 4 * ((r + 1)*qr_size + c) + 2) << 0, 0, 0;
+					}*/
+					if (v == (seg_size - 1)) {
+						facets.row(global.anti_indicatior.size() * 2 + 4 * (r*qr_size + c) + 1) << 0, 0, 0;
+						facets.row(global.anti_indicatior.size() * 2 + 4 * (r*qr_size + c + 1)) << 0, 0, 0;
+					}
+					
+				}
 			}
+
+
+			appendix.push_back({ append_verticals, append_facets });
 		}
 
 	}
 	
-	verticles.block(0, 0, global.qr_verticals.rows(), 3) = qr_verticals;
-
-
+	for (int i = 0; i < appendix.size(); i++) {
+		int v_row = verticles.rows();
+		int f_row = facets.rows();
+		
+		verticles.conservativeResize(v_row + appendix[i].V.rows(), 3);
+		verticles.block(v_row, 0, appendix[i].V.rows(), 3) = appendix[i].V;
+		facets.conservativeResize(f_row + appendix[i].F.rows(), 3);
+		facets.block(f_row, 0, appendix[i].F.rows(), 3) = (appendix[i].F.array() + v_row).matrix();
+	}
 
 }
 

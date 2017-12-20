@@ -44,6 +44,14 @@ void qrcode::serialize(GLOBAL & global, std::string & binary_file)
 	}
 	igl::serialize(anti_indicator_binary, "anti indicator", binary_file);
 
+
+	std::vector<std::vector<int>> patch_indicator_binary(global.patch_indicator.size());
+
+	for (int i = 0; i < global.patch_indicator.size(); i++) 
+		patch_indicator_binary.push_back(std::vector<int>{ global.patch_indicator[i](0),global.patch_indicator[i](1), global.patch_indicator[i](2), global.patch_indicator[i](3) });
+	
+	igl::serialize(patch_indicator_binary, "patch indicator", binary_file);
+
 	std::vector<std::vector<int>> indicator_binary_1(global.indicator.size()), indicator_binary_2(global.indicator.size());
 	for (int i = 0; i < global.indicator.size(); i++) {
 		for (int j = 0; j < global.indicator[i].size(); j++) {
@@ -120,6 +128,15 @@ void qrcode::deserialize(GLOBAL & global, std::string & binary_file)
 	for (int i = 0; i <anti_indicator_binary.size(); i++) {
 		global.anti_indicatior.push_back(Eigen::Vector2i(anti_indicator_binary[i][0],anti_indicator_binary[i][1]));
 	}
+
+	global.patch_indicator.clear();
+
+	std::vector<std::vector<int>> patch_indicator_binary;
+	igl::deserialize(patch_indicator_binary, "patch indicator", binary_file);
+
+	for (int i = 0; i < patch_indicator_binary.size(); i++)
+		global.patch_indicator.push_back(Eigen::Vector4i(patch_indicator_binary[i][0], patch_indicator_binary[i][1], patch_indicator_binary[i][2], patch_indicator_binary[i][3]));
+
 
 	std::vector<std::vector<int>> indicator_binary_1, indicator_binary_2;
 	igl::deserialize(indicator_binary_1, "indicator binary 1", binary_file);

@@ -25,6 +25,9 @@ void qrcode::generate_qr_mesh(Engine * engine, GLOBAL & global)
 	global.anti_indicatior.clear();
 	global.indicator.resize(size-1);
 
+	global.patch_indicator.clear();
+	global.patch_indicator.resize(size - 1);
+
 	for (int y = 0; y < size - 1; y++) {
 		global.indicator[y] = std::vector<Eigen::Vector2i>(size - 1, Eigen::Vector2i(0, -1));
 		for (int x = 0; x < size - 1; x++) {
@@ -85,15 +88,18 @@ void qrcode::generate_qr_mesh(Engine * engine, GLOBAL & global)
 				int h = b;
 
 				A.push_back(Eigen::RowVector3i(f, h, g));
+				global.patch_indicator[p](0) = A.size() - 1;
 			}
 			else {
 				inner = false;
 				island_mesh[label(y, x) - 1].push_back(Eigen::RowVector2i(a, b));
+				global.patch_indicator[p](0) =-1;
 			}
 		}
 		else {
 			inner = false;
 			island_mesh[label(y, x) - 1].push_back(Eigen::RowVector2i(a, b));
+			global.patch_indicator[p](0) = -1;
 		}
 
 		//right (0, 1)
@@ -106,15 +112,18 @@ void qrcode::generate_qr_mesh(Engine * engine, GLOBAL & global)
 				//int h = 4 * index + 1;
 
 				A.push_back(Eigen::RowVector3i(e, f, g));
+				global.patch_indicator[p](1) = A.size() - 1;
 			}
 			else {
 				inner = false;
 				island_mesh[label(y, x) - 1].push_back(Eigen::RowVector2i(d,c));
+				global.patch_indicator[p](1) = -1;
 			}
 		}
 		else {
 			inner = false;
 			island_mesh[label(y, x) - 1].push_back(Eigen::RowVector2i(d, c));
+			global.patch_indicator[p](1) =-1;
 		}
 
 		//up (-1, 0)
@@ -127,15 +136,18 @@ void qrcode::generate_qr_mesh(Engine * engine, GLOBAL & global)
 				int h = c;
 
 				A.push_back(Eigen::RowVector3i(f, h, g));
+				global.patch_indicator[p](2) = A.size() - 1;
 			}
 			else {
 				inner = false;
 				island_mesh[label(y, x) - 1].push_back(Eigen::RowVector2i(c,a));
+				global.patch_indicator[p](2) = -1;
 			}
 		}
 		else {
 			inner = false;
 			island_mesh[label(y, x) - 1].push_back(Eigen::RowVector2i(c, a));
+			global.patch_indicator[p](2) = -1;
 		}
 
 		//down (1, 0)
@@ -148,15 +160,18 @@ void qrcode::generate_qr_mesh(Engine * engine, GLOBAL & global)
 				//int h = 4 * index + 2;
 
 				A.push_back(Eigen::RowVector3i(e, f, g));
+				global.patch_indicator[p](3) = A.size() - 1;
 			}
 			else {
 				inner = false;
 				island_mesh[label(y, x) - 1].push_back(Eigen::RowVector2i(b,d));
+				global.patch_indicator[p](3) = -1;
 			}
 		}
 		else {
 			inner = false;
 			island_mesh[label(y, x) - 1].push_back(Eigen::RowVector2i(b, d));
+			global.patch_indicator[p](3) = -1;
 		}
 
 		if ((global.seeds[flag - 1] == -1)) {

@@ -37,6 +37,7 @@ namespace qrcode {
 		Eigen::MatrixXi under_control;//(s)
 		std::vector<Eigen::Vector2i> anti_indicatior;//(s)
 		std::vector<std::vector<Eigen::Vector2i>> indicator;//(pixels.size+2*border)*scale(s)
+		std::vector<Eigen::Vector4i> patch_indicator;//(s)
 		Eigen::MatrixXd qr_verticals;//(pixels.size+2*border)*scale(s)
 		Eigen::MatrixXi qr_facets;//(s)
 		Eigen::MatrixXd qr_colors;//(s)
