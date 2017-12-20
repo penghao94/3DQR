@@ -1,0 +1,6 @@
+[submodule "extern/qrgen"]
+	path = extern/qrgen
+	url = https://github.com/swannyPeng/Qrgen.git
+[submodule "extern/libigl"]
+	path = extern/libigl
+	url = https://github.com/swannyPeng/libigl.git
