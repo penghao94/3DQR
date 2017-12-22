@@ -22,22 +22,22 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 	/*model center*/
 	int scale = global.info.scale;
 	int border = global.info.border;
-	int qr_size =( global.info.pixels.size()+2*border)*scale;
-	
+	int qr_size = (global.info.pixels.size() + 2 * border)*scale;
+
 	Eigen::MatrixXi controller = global.under_control.block(scale, scale, qr_size, qr_size);
 	std::vector<Eigen::RowVector4f> useful_point;
 
-	for (int y = 0; y < qr_size-2*border*scale; y++) {
-		for (int x = 0; x < qr_size-2*border*scale; x++) {
+	for (int y = 0; y < qr_size - 2 * border*scale; y++) {
+		for (int x = 0; x < qr_size - 2 * border*scale; x++) {
 			if (controller(y + border*scale, x + border*scale) == 1) {
 				Eigen::RowVector3d p = global.hit_matrix.row((y + border*scale)*(qr_size + 1) + x + border*scale);
 				useful_point.push_back(Eigen::RowVector4f(p(0), p(1), p(2), 1));
 			}
 		}
 	}
-		
-	Eigen::MatrixXf V(useful_point.size(),4);
-	
+
+	Eigen::MatrixXf V(useful_point.size(), 4);
+
 	for (int i = 0; i < useful_point.size(); i++)  V.row(i) << useful_point[i];
 
 	V = (global.mode*(V.transpose())).transpose().block(0, 0, V.rows(), 3);
@@ -47,7 +47,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 
 	for (int i = 0; i < V.rows(); i++)  centroid = (centroid.array() + V.row(i).transpose().array()).matrix();
 
-	centroid = centroid/V.rows();
+	centroid = centroid / V.rows();
 
 	/*Upper light source and lower light source*/
 
@@ -66,17 +66,17 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 	upper_source(3) = 1.f;
 	upper_source = (model*upper_source).block(0, 0, 3, 1);
 
-	upper_direct = (centroid-upper_source).normalized();
+	upper_direct = (centroid - upper_source).normalized();
 
 	lower_source.conservativeResize(4);
 	lower_source(3) = 1.f;
 	lower_source = (model*lower_source).block(0, 0, 3, 1);
 
-	lower_direct = (centroid-lower_source).normalized();
+	lower_direct = (centroid - lower_source).normalized();
 
 	/*upper field angle and lower field angle*/
 
-	const auto upper_field_angle = [&radian,&upper_source, &upper_direct](Eigen::RowVectorXf &destination)->bool {
+	const auto upper_field_angle = [&radian, &upper_source, &upper_direct](Eigen::RowVectorXf &destination)->bool {
 		Eigen::VectorXf d = (upper_source - destination.transpose()).normalized();
 		return (std::sqrt(1.f - d.dot(upper_direct)*d.dot(upper_direct)) > std::sin(radian(5))) ? false : true;
 	};
@@ -93,14 +93,14 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 
 	verticles.resize(global.qr_verticals.rows() + global.rest_verticals.rows(), 3);
 	verticles.block(0, 0, global.qr_verticals.rows(), 3) = global.qr_verticals;
-	verticles.block( global.qr_verticals.rows(),0, global.rest_verticals.rows(), 3) = global.rest_verticals;
+	verticles.block(global.qr_verticals.rows(), 0, global.rest_verticals.rows(), 3) = global.rest_verticals;
 
 	int size = global.qr_facets.rows() + global.rest_facets.rows();
-	
+
 
 	facets.resize(size, 3);
 	facets.block(0, 0, global.qr_facets.rows(), 3) = global.qr_facets;
-	facets.block(global.qr_facets.rows(),0, global.rest_facets.rows(), 3) = global.rest_facets;
+	facets.block(global.qr_facets.rows(), 0, global.rest_facets.rows(), 3) = global.rest_facets;
 
 	for (int i = 0; i < global.component.size(); i++) {
 		size = facets.rows();
@@ -112,7 +112,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 
 
 	/*Ambient occlusion visible region*/
-	std::vector<Eigen::MatrixXi> modules = qrcode::module_adapter(engine,global);//pixel.size*scale+1;
+	std::vector<Eigen::MatrixXi> modules = qrcode::module_adapter(engine, global);//pixel.size*scale+1;
 	Eigen::MatrixXi both_modules = modules[0] + modules[1];
 
 	Eigen::MatrixXi label;
@@ -125,7 +125,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		for (int x = 0; x < label.cols(); x++)
 			if (label(y, x) != 0)
 				visible_info.push_back(Eigen::Vector3i(y, x, label(y, x)));
-	
+
 	std::vector<Eigen::MatrixXi> visible_bound;
 	qrcode::bwbound(label, visible_bound);
 	std::vector<qrcode::SMesh> sphere_meshes = qrcode::visible_mesh_on_sphere(visible_info, visible_bound, global);
@@ -142,7 +142,8 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		}
 	}
 
-	step = step /0.2;
+	step = step / 0.2;
+
 
 
 
@@ -162,56 +163,57 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 			depth(i) += step;
 	}
 
+
 	for (int i = 0; i < global.anti_indicatior.size(); i++) {
 		int y = global.anti_indicatior[i](0);
 		int x = global.anti_indicatior[i](1);
 
 
 		if (modules[0](y, x) == 1)
-			qrcode::patch(y, x, depth,both_modules, global);
+			qrcode::patch(y, x, depth, both_modules, global);
 		else if (modules[1](y, x) == 1)
-			qrcode::patch(y, x, depth,both_modules, global);
+			qrcode::patch(y, x, depth, both_modules, global);
 	}
 
 	Eigen::MatrixXd qr_verticals = global.qr_verticals;
-	qrcode::carving_down(global,qr_verticals);
+	qrcode::carving_down(global, qr_verticals);
 
 	verticles.block(0, 0, global.qr_verticals.rows(), 3) = qr_verticals;
 
 	/*QR code normal and position*/
 	Eigen::MatrixXf qr_position, qr_normal;
-	qrcode::pre_pixel_normal(global, qr_verticals,qr_position, qr_normal);
+	qrcode::pre_pixel_normal(global, qr_verticals, qr_position, qr_normal);
 
-	std::vector<Eigen::Vector3f> white_position, white_normal, upper_black_position, upper_black_normal,lower_black_position,lower_black_normal,both_black_position,both_black_normal;
+	std::vector<Eigen::Vector3f> white_position, white_normal, upper_black_position, upper_black_normal, lower_black_position, lower_black_normal, both_black_position, both_black_normal;
 
 	for (int i = 0; i < global.anti_indicatior.size(); i++) {
 		int y = global.anti_indicatior[i](0);
 		int x = global.anti_indicatior[i](1);
 
-			if (modules[0](y, x) == 1) {
-				upper_black_position.push_back(qr_position.row(i).transpose());
-				upper_black_normal.push_back(qr_normal.row(i).transpose());
-				both_black_position.push_back(qr_position.row(i).transpose());
-				both_black_normal.push_back(qr_normal.row(i).transpose());
+		if (modules[0](y, x) == 1) {
+			upper_black_position.push_back(qr_position.row(i).transpose());
+			upper_black_normal.push_back(qr_normal.row(i).transpose());
+			both_black_position.push_back(qr_position.row(i).transpose());
+			both_black_normal.push_back(qr_normal.row(i).transpose());
 
-			}
-			else if (modules[1](y, x) == 1) {
-				lower_black_position.push_back(qr_position.row(i).transpose());
-				lower_black_normal.push_back(qr_normal.row(i).transpose());
-				both_black_position.push_back(qr_position.row(i).transpose());
-				both_black_normal.push_back(qr_normal.row(i).transpose());
-			}
-			else {
-				white_position.push_back(qr_position.row(i).transpose());
-				white_normal.push_back(qr_normal.row(i).transpose());
-			}
+		}
+		else if (modules[1](y, x) == 1) {
+			lower_black_position.push_back(qr_position.row(i).transpose());
+			lower_black_normal.push_back(qr_normal.row(i).transpose());
+			both_black_position.push_back(qr_position.row(i).transpose());
+			both_black_normal.push_back(qr_normal.row(i).transpose());
+		}
+		else {
+			white_position.push_back(qr_position.row(i).transpose());
+			white_normal.push_back(qr_normal.row(i).transpose());
+		}
 	}
-	
+
 	const auto light_to_gray = [](float a, float d)->int {
 		return static_cast<int>(19.6*pow((0.87*(24 * a + 456 * d)), 0.3441) + 21.24);
 	};
 
-	Eigen::MatrixXf AO, DO_upper,DO_lower,DO;
+	Eigen::MatrixXf AO, DO_upper, DO_lower, DO;
 
 	AO.setOnes(qr_size, qr_size);
 	DO_upper.setOnes(qr_size, qr_size);
@@ -220,7 +222,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 	/*Test white region if lighted or not*/
 	Eigen::Matrix<bool, Eigen::Dynamic, 1> white_condition;
 	qrcode::light(verticles, facets, upper_source, white_position, white_condition);
-	
+
 	bool all_light = true;
 	int index_white = 0;
 
@@ -228,7 +230,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		int y = global.anti_indicatior[i](0);
 		int x = global.anti_indicatior[i](1);
 
-		if ( modules[0](y, x) == 0 && modules[1](y, x) == 0) {
+		if (modules[0](y, x) == 0 && modules[1](y, x) == 0) {
 
 			if (y >= border*scale&&y < (qr_size - border*scale) && x >= border*scale&&x < (qr_size - border*scale)) {
 				all_light &= white_condition(index_white);
@@ -246,7 +248,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 
 	Eigen::MatrixXi simu_gray_scale(qr_size, qr_size);
 	simu_gray_scale.setConstant(255);
-	
+
 	Eigen::VectorXf white_AO;
 	qrcode::ambient_occlusion(verticles, facets, white_position, white_normal, 500, white_AO);
 	std::cout << "white ambient occlusion end" << std::endl;
@@ -258,7 +260,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 
 		if (modules[0](y, x) == 0 && modules[1](y, x) == 0) {
 			AO(y, x) = white_AO(index_white);
-			
+
 			Eigen::Vector3f dir = (upper_source - white_position[index_white]).normalized();
 			DO_upper(y, x) = (white_condition(index_white) ? 1.f : 0.f)*dir.dot(white_normal[index_white]);
 			DO_lower(y, x) = DO_upper(y, x);
@@ -279,12 +281,12 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 
 	white_average /= top10;
 
-	
 
-	
+
+
 	/*Optimization*/
 
-	
+
 
 
 	bool should_stop = false;
@@ -294,7 +296,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 
 		should_stop = true;
 
-		Eigen::Matrix<bool, Eigen::Dynamic, 1> upper_black_condition, lower_black_condition,lower_black_upper_condition;
+		Eigen::Matrix<bool, Eigen::Dynamic, 1> upper_black_condition, lower_black_condition, lower_black_upper_condition;
 
 		qrcode::light(verticles, facets, upper_source, upper_black_position, upper_black_condition);
 		qrcode::light(verticles, facets, lower_source, lower_black_position, lower_black_condition);
@@ -360,26 +362,26 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 
 		}
 
-		
+
 		for (int i = 0; i < global.anti_indicatior.size(); i++) {
 			int y = global.anti_indicatior[i](0);
 			int x = global.anti_indicatior[i](1);
 
 			if (modules[0](y, x) == 1)
-				qrcode::patch(y, x, depth,both_modules, global);
+				qrcode::patch(y, x, depth, both_modules, global);
 			else if (modules[1](y, x) == 1)
-				qrcode::patch(y, x, depth,both_modules, global);
+				qrcode::patch(y, x, depth, both_modules, global);
 		}
 
 		qrcode::carving_down(global, qr_verticals);
 		verticles.block(0, 0, global.qr_verticals.rows(), 3) = qr_verticals;
 
-		qrcode::pre_pixel_normal(global,qr_verticals,qr_position, qr_normal);
+		qrcode::pre_pixel_normal(global, qr_verticals, qr_position, qr_normal);
 
 		upper_black_position.clear();
 		upper_black_normal.clear();
-		lower_black_position.clear(); 
-		lower_black_normal.clear(); 
+		lower_black_position.clear();
+		lower_black_normal.clear();
 		both_black_position.clear();
 		both_black_normal.clear();
 
@@ -416,10 +418,10 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		int y = segment(0);
 		int x = segment(1);
 		int length = segment(2);
-		
+
 
 		if (length == 1) {
-			int x_behind = x + length; 
+			int x_behind = x + length;
 			for (int u = 0; u < scale; u++) {
 
 				int origin_index = global.indicator[(y + border)*scale + u][(x + border)*scale + scale - 1](1);
@@ -431,35 +433,60 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 
 				for (int v = 0; v < scale; v++) {
 					int index = global.indicator[(y + border)*scale + u][(x_behind + border)*scale + v](1);
-					double a = ( scale- v)*(end_upper_point - origin_upper_point) / scale / abs(global.direct(((y + border)*scale + u)*(qr_size + 1) + (x_behind + border)*scale + v, 2));
+					double a = (scale - v)*(end_upper_point - origin_upper_point) / scale / abs(global.direct(((y + border)*scale + u)*(qr_size + 1) + (x_behind + border)*scale + v, 2));
 					double b = (scale - v)*(end_lower_point - origin_lower_point) / scale / abs(global.direct(((y + border)*scale + u + 1)*(qr_size + 1) + (x_behind + border)*scale + v, 2));
-					double c = (scale - (v+1))*(end_upper_point - origin_upper_point) / scale /abs( global.direct(((y + border)*scale + u)*(qr_size + 1) + (x_behind + border)*scale + v + 1, 2));
+					double c = (scale - (v + 1))*(end_upper_point - origin_upper_point) / scale / abs(global.direct(((y + border)*scale + u)*(qr_size + 1) + (x_behind + border)*scale + v + 1, 2));
 					double d = (scale - (v + 1))*(end_upper_point - origin_upper_point) / scale / abs(global.direct(((y + border)*scale + u + 1)*(qr_size + 1) + (x_behind + border)*scale + v + 1, 2));
 					qrcode::patch((y + border)*scale + u, (x_behind + border)*scale + v, global, Eigen::Vector4d(a, b, c, d));
-					
+
 				}
-			}	
-		}	
+			}
+		}
 	}
 	qrcode::carving_down(global, qr_verticals);
 	verticles.block(0, 0, global.qr_verticals.rows(), 3) = qr_verticals;
 
 	std::vector<qrcode::SMesh> appendix;
+
+	std::vector<std::vector<Eigen::Matrix<int, 4, 3>>> mesh_info(qr_size);
+	std::vector<std::vector<Eigen::Vector3i>>mesh_status(qr_size);
+	Eigen::Matrix<int, 4, 3> info;
+	info.setConstant(-1);
+
+	for (int i = 0; i < qr_size; i++) {
+		mesh_info[i].resize(qr_size, info);
+		mesh_status[i].resize(qr_size, Eigen::Vector3i(0, 0, 0));
+	}
+		
+
+	for (int y = 0; y < qr_size; y++)
+	{
+		for (int x = 0; x < qr_size; x++) {
+
+			mesh_info[y][x](0, 0) = 4 * global.indicator[y][x](1);
+			mesh_info[y][x](1, 0) = 4 * global.indicator[y][x](1) + 1;
+			mesh_info[y][x](2, 0) = 4 * global.indicator[y][x](1) + 2;
+			mesh_info[y][x](3, 0) = 4 * global.indicator[y][x](1) + 3;
+		}
+	}
+
+	int row = 0;
 	for (int i = 0; i < global.black_module_segments.size(); i++) {
 
 		Eigen::Vector3i segment = global.black_module_segments[i];
 		int y = segment(0);
 		int x = segment(1);
 		int length = segment(2);
-		
-		if (length>1) {
+
+		if (length > 1) {
+
 			int temp_len = length;
-			
+
 			if ((x + length) == global.info.pixels.size()) temp_len = 4;
 
 			Eigen::MatrixXd append_verticals(8 * scale*scale*temp_len, 3);
-			Eigen::MatrixXi append_facets(4 * scale*scale*temp_len, 3);
-			
+			Eigen::MatrixXi append_facets(4 * scale*scale*temp_len + 4 * scale*(scale - 1)*temp_len, 3);
+
 			for (int u = 0; u < scale; u++) {
 
 				int lower_index = global.indicator[(y + border)*scale + u][(x + length - 1 + border)*scale + scale - 1](1);
@@ -478,21 +505,37 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 
 				for (int v = 0; v < seg_size; v++) {
 					int index_seg = u*seg_size + v;
+					int index_seg_1 = (u + 1)*seg_size + v;
 
-					int r = (y + border)*scale+u;
+					int r = (y + border)*scale + u;
 					int c = (x + length + border)*scale + v;
 
-					append_verticals.row(4 * index_seg) << global.hit_matrix(r*(qr_size + 1) + c,0), global.hit_matrix(r*(qr_size + 1) + c, 1),lower_left_point;
-					append_verticals.row(4 * index_seg + 1) <<global.hit_matrix((r + 1)*(qr_size + 1) + c,0), global.hit_matrix((r + 1)*(qr_size + 1) + c, 1),lower_right_point;
-					append_verticals.row(4 * index_seg + 2) <<global.hit_matrix(r*(qr_size + 1) + c + 1,0), global.hit_matrix(r*(qr_size + 1) + c + 1, 1), lower_left_point;
-					append_verticals.row(4 * index_seg + 3)<< global.hit_matrix((r + 1)*(qr_size + 1) + c + 1,0), global.hit_matrix((r + 1)*(qr_size + 1) + c + 1, 1),lower_right_point;
+					//append_verticals.row(4 * index_seg) << global.hit_matrix(r*(qr_size + 1) + c,0), global.hit_matrix(r*(qr_size + 1) + c, 1),lower_left_point;
+					//append_verticals.row(4 * index_seg + 1) <<global.hit_matrix((r + 1)*(qr_size + 1) + c,0), global.hit_matrix((r + 1)*(qr_size + 1) + c, 1),lower_right_point;
+					//append_verticals.row(4 * index_seg + 2) <<global.hit_matrix(r*(qr_size + 1) + c + 1,0), global.hit_matrix(r*(qr_size + 1) + c + 1, 1), lower_left_point;
+					//append_verticals.row(4 * index_seg + 3)<< global.hit_matrix((r + 1)*(qr_size + 1) + c + 1,0), global.hit_matrix((r + 1)*(qr_size + 1) + c + 1, 1),lower_right_point;
+
+					append_verticals.row(4 * index_seg) =
+						global.hit_matrix.row(r*(qr_size + 1) + c) + global.direct.row(r*(qr_size + 1) + c).cast<double>()*(lower_left_point - upper_left_point) / global.direct(r*(qr_size + 1) + c, 2);
+					append_verticals.row(4 * index_seg + 1) =
+						global.hit_matrix.row((r + 1)*(qr_size + 1) + c) + global.direct.row((r + 1)*(qr_size + 1) + c).cast<double>()*(lower_right_point - upper_right_point) / global.direct((r + 1)*(qr_size + 1) + c, 2);
+					append_verticals.row(4 * index_seg + 2) =
+						global.hit_matrix.row(r*(qr_size + 1) + c + 1) + global.direct.row(r*(qr_size + 1) + c + 1).cast<double>()*(lower_left_point - upper_left_point) / global.direct(r*(qr_size + 1) + c + 1, 2);
+					append_verticals.row(4 * index_seg + 3) =
+						global.hit_matrix.row((r + 1)*(qr_size + 1) + c + 1) + global.direct.row((r + 1)*(qr_size + 1) + c + 1).cast<double>()*(lower_right_point - upper_right_point) / global.direct((r + 1)*(qr_size + 1) + c + 1, 2);
+
 
 					append_facets.row(2 * index_seg) << 4 * index_seg, 4 * index_seg + 1, 4 * index_seg + 2;
 					append_facets.row(2 * index_seg + 1) << 4 * index_seg + 1, 4 * index_seg + 3, 4 * index_seg + 2;
 
+					if (u < scale - 1) {
+						append_facets.row(4 * scale*scale*temp_len + 2 * index_seg) << 4 * index_seg + 1, 4 * index_seg_1, 4 * index_seg + 3;
+						append_facets.row(4 * scale*scale*temp_len + 2 * index_seg + 1) << 4 * index_seg + 3, 4 * index_seg_1, 4 * index_seg_1 + 2;
+					}
 
-					
-					append_verticals.row(4 * scale*seg_size + 4 * index_seg) <<
+
+
+					/*append_verticals.row(4 * scale*seg_size + 4 * index_seg) <<
 						global.hit_matrix(r*(qr_size + 1) + c, 0),
 						global.hit_matrix(r*(qr_size + 1) + c, 1),
 						upper_left_point + diff_right*v;
@@ -507,43 +550,296 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 					append_verticals.row(4 * scale*seg_size + 4 * index_seg + 3) <<
 						global.hit_matrix((r + 1)*(qr_size + 1) + c + 1, 0),
 						global.hit_matrix((r + 1)*(qr_size + 1) + c + 1, 1),
-						upper_right_point + diff_right*(v+1);
+						upper_right_point + diff_right*(v+1);*/
+
+
+					append_verticals.row(4 * scale*seg_size + 4 * index_seg) =
+						global.hit_matrix.row(r*(qr_size + 1) + c) + global.direct.row(r*(qr_size + 1) + c).cast<double>()* v *diff_left / global.direct(r*(qr_size + 1) + c, 2);
+					append_verticals.row(4 * scale*seg_size + 4 * index_seg + 1) =
+						global.hit_matrix.row((r + 1)*(qr_size + 1) + c) + global.direct.row((r + 1)*(qr_size + 1) + c).cast<double>()* v *diff_right / global.direct((r + 1)*(qr_size + 1) + c, 2);
+					append_verticals.row(4 * scale*seg_size + 4 * index_seg + 2) =
+						global.hit_matrix.row(r*(qr_size + 1) + c + 1) + global.direct.row(r*(qr_size + 1) + c + 1).cast<double>()* (v + 1) *diff_left / global.direct(r*(qr_size + 1) + c + 1, 2);
+					append_verticals.row(4 * scale*seg_size + 4 * index_seg + 3) =
+						global.hit_matrix.row((r + 1)*(qr_size + 1) + c + 1) + global.direct.row((r + 1)*(qr_size + 1) + c + 1).cast<double>()* (v + 1) *diff_right / global.direct((r + 1)*(qr_size + 1) + c + 1, 2);
+
 
 					append_facets.row(2 * scale*seg_size + 2 * index_seg) << 4 * scale*seg_size + 4 * index_seg, 4 * scale*seg_size + 4 * index_seg + 2, 4 * scale*seg_size + 4 * index_seg + 1;
 					append_facets.row(2 * scale*seg_size + 2 * index_seg + 1) << 4 * scale*seg_size + 4 * index_seg + 1, 4 * scale*seg_size + 4 * index_seg + 2, 4 * scale*seg_size + 4 * index_seg + 3;
 
-					/*if (u == 0) {
-						facets.row(global.anti_indicatior.size() * 2 + 4 * (r*qr_size + c) + 2) << 0, 0, 0;
-						facets.row(global.anti_indicatior.size() * 2 + 4 * ((r - 1)*qr_size + c) + 3) << 0, 0, 0;
+					if (u < scale - 1) {
+						append_facets.row(4 * scale*scale*temp_len + 2 * scale*(scale - 1)*temp_len + 2 * index_seg) <<
+							4 * scale*seg_size + 4 * index_seg + 1, 4 * scale*seg_size + 4 * index_seg_1, 4 * scale*seg_size + 4 * index_seg + 3;
+						append_facets.row(4 * scale*scale*temp_len + 2 * scale*(scale - 1)*temp_len + 2 * index_seg + 1) <<
+							4 * scale*seg_size + 4 * index_seg + 3, 4 * scale*seg_size + 4 * index_seg_1, 4 * scale*seg_size + 4 * index_seg_1 + 2;
 					}
+
+					if (u == 0) {
+						facets.row(global.anti_indicatior.size() * 2 + global.patch_indicator[(r - 1)*qr_size + c](3)) << 0, 0, 0;
+						facets.row(global.anti_indicatior.size() * 2 + global.patch_indicator[r*qr_size + c](2)) << 0, 0, 0;
+
+						mesh_info[r][c](0, 2) = verticles.rows() + row + 4 * index_seg;
+						mesh_info[r][c](2, 2) = verticles.rows() + row + 4 * index_seg + 2;
+						mesh_info[r][c](0, 1) = verticles.rows() + row + 4 * scale*seg_size + 4 * index_seg;
+						mesh_info[r][c](2, 1) = verticles.rows() + row + 4 * scale*seg_size + 4 * index_seg + 2;
+
+					}
+
 
 					if (u == (scale - 1)) {
-						facets.row(global.anti_indicatior.size() * 2 + 4 * (r*qr_size + c) + 3) << 0, 0, 0;
-						facets.row(global.anti_indicatior.size() * 2 + 4 * ((r + 1)*qr_size + c) + 2) << 0, 0, 0;
-					}*/
-					if (v == (seg_size - 1)) {
-						facets.row(global.anti_indicatior.size() * 2 + 4 * (r*qr_size + c) + 1) << 0, 0, 0;
-						facets.row(global.anti_indicatior.size() * 2 + 4 * (r*qr_size + c + 1)) << 0, 0, 0;
+						facets.row(global.anti_indicatior.size() * 2 + global.patch_indicator[r*qr_size + c](3)) << 0, 0, 0;
+						facets.row(global.anti_indicatior.size() * 2 + global.patch_indicator[(r + 1)*qr_size + c](2)) << 0, 0, 0;
+
+						mesh_info[r][c](1, 2) = verticles.rows() + row + 4 * index_seg + 1;
+						mesh_info[r][c](3, 2) = verticles.rows() + row + 4 * index_seg + 3;
+						mesh_info[r][c](1, 1) = verticles.rows() + row + 4 * scale*seg_size + 4 * index_seg + 1;
+						mesh_info[r][c](3, 1) = verticles.rows() + row + 4 * scale*seg_size + 4 * index_seg + 3;
+
+
 					}
-					
+					if (v == 0) {
+						facets.row(global.anti_indicatior.size() * 2 + global.patch_indicator[r*qr_size + c](0)) << 0, 0, 0;
+						facets.row(global.anti_indicatior.size() * 2 + global.patch_indicator[r*qr_size + c - 1](1)) << 0, 0, 0;
+					}
+
 				}
 			}
-
-
 			appendix.push_back({ append_verticals, append_facets });
+			row += append_verticals.rows();
 		}
 
 	}
-	
+
+
 	for (int i = 0; i < appendix.size(); i++) {
 		int v_row = verticles.rows();
 		int f_row = facets.rows();
-		
+
 		verticles.conservativeResize(v_row + appendix[i].V.rows(), 3);
 		verticles.block(v_row, 0, appendix[i].V.rows(), 3) = appendix[i].V;
 		facets.conservativeResize(f_row + appendix[i].F.rows(), 3);
 		facets.block(f_row, 0, appendix[i].F.rows(), 3) = (appendix[i].F.array() + v_row).matrix();
 	}
 
+	std::vector<Eigen::Vector3i> face;
+
+	for (int i = 0; i < global.black_module_segments.size(); i++) {
+
+		Eigen::Vector3i segment = global.black_module_segments[i];
+		int y = segment(0);
+		int x = segment(1);
+		int length = segment(2);
+
+		if (length > 1) {
+
+			int temp_len = length;
+
+			if ((x + length) == global.info.pixels.size()) temp_len = 4;
+
+			for (int u = 0; u < scale; u++) {
+
+				int seg_size = scale*temp_len;
+
+				for (int v = 0; v < seg_size; v++) {
+
+					int r = (y + border)*scale + u;
+					int c = (x + length + border)*scale + v;
+
+
+					if (u == 0) {
+						double height_std = (verticles(mesh_info[r][c](0, 1), 2) + verticles(mesh_info[r][c](2, 1), 2)) / 2;
+						//upper
+						//if (mesh_status[r][c][0] == 0) {
+
+						if (mesh_info[r - 1][c](1, 2) != -1 && mesh_info[r - 1][c](3, 2) != -1 && mesh_info[r - 1][c](1, 1) != -1 && mesh_info[r - 1][c](3, 1) != -1) {
+
+							if ((verticles(mesh_info[r - 1][c](1, 2), 2) / 2 + verticles(mesh_info[r - 1][c](3, 2), 2) / 2) > height_std) {
+								face.emplace_back(mesh_info[r - 1][c](1, 2), mesh_info[r][c](0, 0), mesh_info[r - 1][c](3, 2));
+								face.emplace_back(mesh_info[r - 1][c](3, 2), mesh_info[r][c](0, 0), mesh_info[r][c](2, 0));
+								//mesh_status[r][c](0) = 1;
+								//mesh_status[r - 1][c](0) = 1;
+							}
+
+							else if ((verticles(mesh_info[r - 1][c](1, 1), 2) / 2 + verticles(mesh_info[r - 1][c](3, 1), 2) / 2) > height_std) {
+								face.emplace_back(mesh_info[r - 1][c](1, 1), mesh_info[r][c](0, 0), mesh_info[r - 1][c](3, 1));
+								face.emplace_back(mesh_info[r - 1][c](3, 1), mesh_info[r][c](0, 0), mesh_info[r][c](2, 0));
+								//mesh_status[r][c](0) = 1;
+								//mesh_status[r - 1][c](0) = 1;
+							}
+
+						}
+
+						else if ((verticles(mesh_info[r - 1][c](1, 0), 2) / 2 + verticles(mesh_info[r - 1][c](3, 0), 2) / 2) > height_std) {
+							face.emplace_back(mesh_info[r - 1][c](1, 0), mesh_info[r][c](0, 0), mesh_info[r - 1][c](3, 0));
+							face.emplace_back(mesh_info[r - 1][c](3, 0), mesh_info[r][c](0, 0), mesh_info[r][c](2, 0));
+							//mesh_status[r][c](0) = 1;
+							//mesh_status[r - 1][c](0) = 1;
+						}
+
+						else {
+							face.emplace_back(mesh_info[r][c](0, 1), mesh_info[r][c](0, 0), mesh_info[r][c](2, 1));
+							face.emplace_back(mesh_info[r][c](2, 1), mesh_info[r][c](0, 0), mesh_info[r][c](2, 0));
+							//mesh_status[r][c](0) = 1;
+						}
+						//}
+
+						//middle
+
+						//if (mesh_status[r][c](1) == 0) {
+
+						if (mesh_info[r - 1][c](1, 1) != -1 && mesh_info[r - 1][c](3, 1) != -1) {
+							face.emplace_back(mesh_info[r - 1][c](1, 1), mesh_info[r][c](0, 1), mesh_info[r - 1][c](3, 1));
+							face.emplace_back(mesh_info[r - 1][c](3, 1), mesh_info[r][c](0, 1), mesh_info[r][c](2, 1));
+							mesh_status[r][c](1) = 1;
+							mesh_status[r - 1][c](1) = 1;
+						}
+						//}
+
+						//lower
+
+						//if (mesh_status[r][c](2) == 0) {
+
+						double height_std_l = (verticles(mesh_info[r][c](0, 2), 2) + verticles(mesh_info[r][c](2, 2), 2)) / 2;
+
+						if (mesh_info[r - 1][c](1, 2) != -1 && mesh_info[r - 1][c](3, 2) != -1&& mesh_info[r - 1][c](1, 1) != -1 && mesh_info[r - 1][c](3, 1) != -1) {
+							if ((verticles(mesh_info[r - 1][c](1, 2), 2) / 2 + verticles(mesh_info[r - 1][c](3, 2), 2) / 2) > height_std_l &&
+								(verticles(mesh_info[r - 1][c](1, 2), 2) / 2 + verticles(mesh_info[r - 1][c](3, 2), 2) / 2) < height_std) {
+								face.emplace_back(mesh_info[r - 1][c](1, 2), mesh_info[r][c](0, 2), mesh_info[r - 1][c](3, 2));
+								face.emplace_back(mesh_info[r - 1][c](3, 2), mesh_info[r][c](0, 2), mesh_info[r][c](2, 2));
+								//mesh_status[r][c](2) = 1;
+								//mesh_status[r - 1][c](2) = 1;
+							}
+							else if ((verticles(mesh_info[r - 1][c](1, 2), 2) / 2 + verticles(mesh_info[r - 1][c](3, 2), 2) / 2) > height_std_l &&
+								(verticles(mesh_info[r - 1][c](1, 2), 2) / 2 + verticles(mesh_info[r - 1][c](3, 2), 2) / 2) > height_std) {
+
+								face.emplace_back(mesh_info[r][c](0, 1), mesh_info[r][c](0, 2), mesh_info[r][c](2, 1));
+								face.emplace_back(mesh_info[r][c](2, 1), mesh_info[r][c](0, 2), mesh_info[r][c](2, 2));
+								//mesh_status[r][c](2) = 1;
+
+							}
+
+							/*else if ((verticles(mesh_info[r - 1][c](1, 1), 2) / 2 + verticles(mesh_info[r - 1][c](3, 2), 2) / 2) > height_std_l &&
+								(verticles(mesh_info[r - 1][c](1, 2), 2) / 2 + verticles(mesh_info[r - 1][c](3, 2), 2) / 2) < height_std){
+								face.emplace_back(mesh_info[r - 1][c](1, 1), mesh_info[r][c](0, 2), mesh_info[r - 1][c](3, 1));
+								face.emplace_back(mesh_info[r - 1][c](3, 1), mesh_info[r][c](0, 2), mesh_info[r][c](2, 2));
+								}*/
+							}
+							else{
+								if ((verticles(mesh_info[r - 1][c](1, 0), 2) / 2 + verticles(mesh_info[r - 1][c](3, 0), 2) / 2) < height_std) {
+
+									face.emplace_back(mesh_info[r - 1][c](1,0), mesh_info[r][c](0, 2), mesh_info[r - 1][c](3, 0));
+									face.emplace_back(mesh_info[r - 1][c](3, 0), mesh_info[r][c](0, 2), mesh_info[r][c](2, 2));
+								}
+								else {
+									face.emplace_back(mesh_info[r][c](0, 1), mesh_info[r][c](0, 2), mesh_info[r][c](2, 1));
+									face.emplace_back(mesh_info[r][c](2, 1), mesh_info[r][c](0, 2), mesh_info[r][c](2, 2));
+								}
+							}
+						//}
+
+					}
+
+					if (u == (scale - 1)) {
+						double height_std = (verticles(mesh_info[r][c](1, 1), 2) + verticles(mesh_info[r][c](3, 1), 2)) / 2;
+
+						//upper
+						//if (mesh_status[r][c][0] == 0) {
+
+						if (mesh_info[r + 1][c](0, 2) != -1 && mesh_info[r + 1][c](2, 2) != -1 && mesh_info[r + 1][c](0, 1) != -1 && mesh_info[r + 1][c](2, 1) != -1) {
+
+							if ((verticles(mesh_info[r + 1][c](0, 2), 2) / 2 + verticles(mesh_info[r + 1][c](2, 2), 2) / 2) > height_std) {
+								face.emplace_back(mesh_info[r][c](1, 0), mesh_info[r + 1][c](0, 2), mesh_info[r][c](3, 0));
+								face.emplace_back(mesh_info[r][c](3, 0), mesh_info[r + 1][c](0, 2), mesh_info[r + 1][c](2, 2));
+								//mesh_status[r][c](0) = 1;
+								//mesh_status[r + 1][c](0) = 1;
+							}
+
+							else if ((verticles(mesh_info[r + 1][c](0, 1), 2) / 2 + verticles(mesh_info[r + 1][c](2, 1), 2) / 2) > height_std) {
+								face.emplace_back(mesh_info[r][c](1, 0), mesh_info[r + 1][c](0, 1), mesh_info[r][c](3, 0));
+								face.emplace_back(mesh_info[r][c](3, 0), mesh_info[r + 1][c](0, 1), mesh_info[r + 1][c](2, 1));
+								//mesh_status[r][c](0) = 1;
+								//mesh_status[r + 1][c](0) = 1;
+							}
+
+						}
+
+						else if ((verticles(mesh_info[r + 1][c](0, 0), 2) / 2 + verticles(mesh_info[r + 1][c](2, 0), 2) / 2) > height_std) {
+							face.emplace_back(mesh_info[r][c](1, 0), mesh_info[r + 1][c](0, 0), mesh_info[r][c](3, 0));
+							face.emplace_back(mesh_info[r][c](3, 0), mesh_info[r + 1][c](0, 0), mesh_info[r + 1][c](2, 0));
+							//mesh_status[r][c](0) = 1;
+							//mesh_status[r + 1][c](0) = 1;
+						}
+
+						else {
+							face.emplace_back(mesh_info[r][c](1,0), mesh_info[r][c](1,1), mesh_info[r][c](3,0));
+							face.emplace_back(mesh_info[r][c](3,0), mesh_info[r][c](1,1), mesh_info[r][c](3,1));
+							//mesh_status[r][c](0) = 1;
+						}
+						//}
+
+						//middle
+
+						//if (mesh_status[r][c](1) == 0) {
+
+						if (mesh_info[r + 1][c](0, 1) != -1 && mesh_info[r + 1][c](2, 1) != -1) {
+							face.emplace_back(mesh_info[r][c](1, 1), mesh_info[r + 1][c](0, 1), mesh_info[r][c](3, 1));
+							face.emplace_back(mesh_info[r][c](3, 1), mesh_info[r + 1][c](0, 1), mesh_info[r + 1][c](2, 1));
+							//mesh_status[r][c](1) = 1;
+							//mesh_status[r + 1][c](1) = 1;
+						}
+						//}
+
+						//lower
+
+						//if (mesh_status[r][c](2) == 0) {
+
+						double height_std_l = (verticles(mesh_info[r][c](1, 2), 2) + verticles(mesh_info[r][c](3, 2), 2)) / 2;
+
+						if (mesh_info[r + 1][c](0, 2) != -1 && mesh_info[r + 1][c](2, 2) != -1 && mesh_info[r + 1][c](0, 1) != -1 && mesh_info[r + 1][c](2, 1) != -1) {
+							if ((verticles(mesh_info[r + 1][c](0, 2), 2) / 2 + verticles(mesh_info[r + 1][c](2, 2), 2) / 2) > height_std_l &&
+								(verticles(mesh_info[r + 1][c](0, 2), 2) / 2 + verticles(mesh_info[r + 1][c](2, 2), 2) / 2) < height_std) {
+								face.emplace_back(mesh_info[r][c](1, 2), mesh_info[r + 1][c](0, 2), mesh_info[r][c](3, 2));
+								face.emplace_back(mesh_info[r][c](3, 2), mesh_info[r + 1][c](0, 2), mesh_info[r + 1][c](2, 2));
+								//mesh_status[r][c](2) = 1;
+								//mesh_status[r + 1][c](2) = 1;
+							}
+							else if ((verticles(mesh_info[r + 1][c](0, 2), 2) / 2 + verticles(mesh_info[r + 1][c](2, 2), 2) / 2) > height_std_l &&
+								(verticles(mesh_info[r + 1][c](0, 2), 2) / 2 + verticles(mesh_info[r + 1][c](0, 2), 2) / 2) > height_std) {
+
+								face.emplace_back(mesh_info[r][c](1, 1), mesh_info[r][c](1, 2), mesh_info[r][c](3, 1));
+								face.emplace_back(mesh_info[r][c](3, 1), mesh_info[r][c](1, 2), mesh_info[r][c](3, 2));
+								//mesh_status[r][c](2) = 1;
+
+							}
+
+							/*else if ((verticles(mesh_info[r + 1][c](1, 1), 2) / 2 + verticles(mesh_info[r + 1][c](3, 2), 2) / 2) > height_std_l &&
+							(verticles(mesh_info[r + 1][c](1, 2), 2) / 2 + verticles(mesh_info[r + 1][c](3, 2), 2) / 2) < height_std){
+							face.emplace_back(mesh_info[r + 1][c](1, 1), mesh_info[r][c](0, 2), mesh_info[r + 1][c](3, 1));
+							face.emplace_back(mesh_info[r + 1][c](3, 1), mesh_info[r][c](0, 2), mesh_info[r][c](2, 2));
+							}*/
+						}
+						else {
+							if ((verticles(mesh_info[r + 1][c](0, 0), 2) / 2 + verticles(mesh_info[r + 1][c](2, 0), 2) / 2) < height_std) {
+
+								face.emplace_back(mesh_info[r][c](1, 0), mesh_info[r + 1][c](0, 2), mesh_info[r][c](3, 0));
+								face.emplace_back(mesh_info[r][c](3, 0), mesh_info[r + 1][c](0, 2), mesh_info[r + 1][c](2, 2));
+							}
+							else {
+								face.emplace_back(mesh_info[r][c](1, 1), mesh_info[r][c](1, 2), mesh_info[r][c](3, 1));
+								face.emplace_back(mesh_info[r][c](3, 1), mesh_info[r][c](1, 2), mesh_info[r][c](3, 2));
+							}
+						}
+						//}
+
+
+					}
+
+				}
+			}
+
+		}
+
+
+	}
 }
+
 

@@ -34,7 +34,7 @@ std::vector<Eigen::MatrixXi> qrcode::module_adapter(Engine * engine, GLOBAL & gl
 	Eigen::MatrixXi label;
 	qrcode::bwlabel(engine, region, 4, label);
 
-	Eigen::MatrixXi t = label;
+	Eigen::MatrixXi t = label; 
 	label.setZero(label.rows(), label.cols() + 1);
 	label.block(0, 0, label.rows(), label.rows()) = t; 
 
@@ -74,6 +74,7 @@ std::vector<Eigen::MatrixXi> qrcode::module_adapter(Engine * engine, GLOBAL & gl
 
 	Eigen::MatrixXi modefier;
 	modefier.setOnes(upper_modules.rows(), upper_modules.cols());
+
 
 	while (!stop_iter) {
 
@@ -237,12 +238,14 @@ std::vector<Eigen::MatrixXi> qrcode::module_adapter(Engine * engine, GLOBAL & gl
 
 	region = both_modules.block(border, border, global.info.pixels.size(), global.info.pixels.size());
 
-
 	qrcode::bwlabel(engine, region, 4, label);
 
-	t = label;
+	Eigen::MatrixXi tmp = label;
+
 	label.setZero(label.rows(), label.cols() + 1);
-	label.block(0, 0, label.rows(), label.rows()) = t;
+	
+	label.block(0, 0, label.rows(), label.cols()-1) = tmp;
+	std::cout << label << std::endl;
 
 	global.black_module_segments.clear();
 
@@ -272,7 +275,7 @@ std::vector<Eigen::MatrixXi> qrcode::module_adapter(Engine * engine, GLOBAL & gl
 		}
 	}
 
-
+	for (auto s : global.black_module_segments) std::cout << s.transpose() << std::endl;
 	Eigen::MatrixXi upper_Modules, lower_Modules;
 
 	upper_Modules.setZero(controller.rows() + 1, controller.cols() + 1);
@@ -282,7 +285,7 @@ std::vector<Eigen::MatrixXi> qrcode::module_adapter(Engine * engine, GLOBAL & gl
 		for (int x = 0; x < modules.cols(); x++) {
 			for (int u = 0; u < scale; u++) {
 				for (int v = 0; v < scale; v++) {
-					upper_Modules(y*scale + u, x*scale + v) = modules(y, x);
+					upper_Modules(y*scale + u, x*scale + v) = upper_modules(y, x);
 					lower_Modules(y*scale + u, x*scale + v) = lower_modules(y, x);
 				}	
 			}	

@@ -25,8 +25,7 @@ void qrcode::generate_qr_mesh(Engine * engine, GLOBAL & global)
 	global.anti_indicatior.clear();
 	global.indicator.resize(size-1);
 
-	global.patch_indicator.clear();
-	global.patch_indicator.resize(size - 1);
+	
 
 	for (int y = 0; y < size - 1; y++) {
 		global.indicator[y] = std::vector<Eigen::Vector2i>(size - 1, Eigen::Vector2i(0, -1));
@@ -38,6 +37,8 @@ void qrcode::generate_qr_mesh(Engine * engine, GLOBAL & global)
 		}
 	}
 
+	global.patch_indicator.clear();
+	global.patch_indicator.resize(global.anti_indicatior.size());
 	/*Build island*/
 	Eigen::MatrixXd V(4 * global.anti_indicatior.size(), 3);
 	Eigen::MatrixXi F(2 * global.anti_indicatior.size(), 3);

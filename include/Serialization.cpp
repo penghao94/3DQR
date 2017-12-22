@@ -48,7 +48,7 @@ void qrcode::serialize(GLOBAL & global, std::string & binary_file)
 	std::vector<std::vector<int>> patch_indicator_binary(global.patch_indicator.size());
 
 	for (int i = 0; i < global.patch_indicator.size(); i++) 
-		patch_indicator_binary.push_back(std::vector<int>{ global.patch_indicator[i](0),global.patch_indicator[i](1), global.patch_indicator[i](2), global.patch_indicator[i](3) });
+		patch_indicator_binary[i]={ global.patch_indicator[i](0),global.patch_indicator[i](1), global.patch_indicator[i](2), global.patch_indicator[i](3)};
 	
 	igl::serialize(patch_indicator_binary, "patch indicator", binary_file);
 

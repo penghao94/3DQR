@@ -63,6 +63,5 @@ std::vector<qrcode::SMesh> qrcode::visible_mesh_on_sphere(std::vector<Eigen::Vec
 	
 
 	igl::parallel_for(position.size(), vis, 1000);
-	for (int i = 0; i < position.size(); i++) vis(i);
 	return meshes;
 }
