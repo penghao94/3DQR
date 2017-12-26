@@ -28,6 +28,7 @@
 #include "makehole.h"
 #include "fixhole.h"
 #include "directional_light.h"
+#include "reflaction.h"
 /*global parameters */
 
 
@@ -224,6 +225,15 @@ int main(int argc, char *argv[])
 
 			viewer.data.clear();
 			viewer.data.set_mesh(V, F);
+		});
+		viewer.ngui->addButton("reflaction", [&]() {
+			Eigen::MatrixXd V;
+			Eigen::MatrixXi F;
+			qrcode::reflaction(g, V, F);
+
+			viewer.data.clear();
+			viewer.data.set_mesh(V, F);
+		
 		});
 
 		viewer.screen->performLayout();

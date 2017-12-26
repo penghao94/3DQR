@@ -5,18 +5,15 @@
 // This Source Code Form is subject to the terms of the Mozilla Public License 
 // v. 2.0. If a copy of the MPL was not distributed with this file, You can 
 // obtain one at http://mozilla.org/MPL/2.0/.
-
-#ifndef MODULE_ADAPTER_H_
-#define MODULE_ADAPTER_H_
-#include <algorithm>
-#include <Eigen/dense>
-#include <igl/serialize.h>
+#ifndef REFLACTION
+#include<vector>
+#include<algorithm>
+#include<igl/serialize.h>
+#include<igl/writeOBJ.h>
+#include "sphere_mesh.h"
 #include "global.h"
-#include "bwlabel.h"
-#include "writePNG.h"
 namespace qrcode {
-	std::vector<Eigen::MatrixXi> module_adapter(Engine * engine, GLOBAL &global);
+	void reflaction(GLOBAL &global, Eigen::MatrixXd &verticles, Eigen::MatrixXi&facets);
 }
-
-#endif // !MODULE_ADAPTER_H_
+#endif // !REFLACTION
 

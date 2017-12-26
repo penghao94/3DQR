@@ -274,6 +274,12 @@ std::vector<Eigen::MatrixXi> qrcode::module_adapter(Engine * engine, GLOBAL & gl
 
 		}
 	}
+	Eigen::MatrixXi black_module_seg(global.black_module_segments.size(), 3);
+	for (int i = 0; i < global.black_module_segments.size(); i++) black_module_seg.row(i) = global.black_module_segments[i].transpose();
+
+
+	std::string binary_file = "reflaction";
+	igl::serialize(black_module_seg, "black_module_seg", binary_file, true);
 
 	for (auto s : global.black_module_segments) std::cout << s.transpose() << std::endl;
 	Eigen::MatrixXi upper_Modules, lower_Modules;
