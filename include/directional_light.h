@@ -9,6 +9,7 @@
 #ifndef DIRECTIONAL_LIGHT_H_
 #define DIRECTIONAL_LIGHT_H_
 #include<vector>
+#include<algorithm>
 #include<string>
 #include<Eigen/dense>
 #include<igl/viewer/Viewer.h>
