@@ -208,13 +208,13 @@ int main(int argc, char *argv[])
 		g.latitude_upper = 45;
 		viewer.ngui->addVariable("Upper latitude", g.latitude_upper);
 
-		g.latitude_lower = 30;
+		g.latitude_lower = 40;
 		viewer.ngui->addVariable("Lower latitude", g.latitude_lower);
 
 		g.longitude = 180;
 		viewer.ngui->addVariable("Longitude", g.longitude);
 
-		g.distance = 30;
+		g.distance = 1000;
 		viewer.ngui->addVariable("Distance", g.distance);
 
 

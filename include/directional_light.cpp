@@ -431,12 +431,25 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 				double end_upper_point = qr_verticals(4 * end_index + 2, 2);
 				double end_lower_point = qr_verticals(4 * end_index + 3, 2);
 
+				double diff_upper = (origin_upper_point - end_upper_point) / scale;
+				double diff_lower = (origin_lower_point - end_lower_point) / scale;
+
 				for (int v = 0; v < scale; v++) {
 					int index = global.indicator[(y + border)*scale + u][(x_behind + border)*scale + v](1);
-					double a = (scale - v)*(end_upper_point - origin_upper_point) / scale / abs(global.direct(((y + border)*scale + u)*(qr_size + 1) + (x_behind + border)*scale + v, 2));
-					double b = (scale - v)*(end_lower_point - origin_lower_point) / scale / abs(global.direct(((y + border)*scale + u + 1)*(qr_size + 1) + (x_behind + border)*scale + v, 2));
-					double c = (scale - (v + 1))*(end_upper_point - origin_upper_point) / scale / abs(global.direct(((y + border)*scale + u)*(qr_size + 1) + (x_behind + border)*scale + v + 1, 2));
-					double d = (scale - (v + 1))*(end_upper_point - origin_upper_point) / scale / abs(global.direct(((y + border)*scale + u + 1)*(qr_size + 1) + (x_behind + border)*scale + v + 1, 2));
+
+					double a = (global.hit_matrix(((y + border)*scale + u + 1)*(qr_size + 1) + (x_behind + border)*scale + v, 2) - end_upper_point + (scale - v)*(end_upper_point - origin_upper_point) / scale)
+						/ abs(global.direct(((y + border)*scale + u)*(qr_size + 1) + (x_behind + border)*scale + v, 2));
+
+					double b = (global.hit_matrix(((y + border)*scale + u + 1)*(qr_size + 1) + (x_behind + border)*scale + v, 2) - end_lower_point + (scale - v)*(end_lower_point - origin_lower_point) / scale)
+						/ abs(global.direct(((y + border)*scale + u + 1)*(qr_size + 1) + (x_behind + border)*scale + v, 2));
+
+					double c = (global.hit_matrix(((y + border)*scale + u)*(qr_size + 1) + (x_behind + border)*scale + v + 1, 2) - end_upper_point + (scale - (v + 1))*(end_upper_point - origin_upper_point) / scale)
+						/ abs(global.direct(((y + border)*scale + u)*(qr_size + 1) + (x_behind + border)*scale + v + 1, 2));
+
+					double d = (global.hit_matrix(((y + border)*scale + u + 1)*(qr_size + 1) + (x_behind + border)*scale + v + 1, 2) - end_lower_point + (scale - (v + 1))*(end_upper_point - origin_upper_point) / scale)
+						/ abs(global.direct(((y + border)*scale + u + 1)*(qr_size + 1) + (x_behind + border)*scale + v + 1, 2));
+
+
 					qrcode::patch((y + border)*scale + u, (x_behind + border)*scale + v, global, Eigen::Vector4d(a, b, c, d));
 
 				}
