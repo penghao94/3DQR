@@ -403,8 +403,8 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 				both_black_normal.push_back(qr_normal.row(i).transpose());
 			}
 		}
-		igl::writeOBJ("F:/3DQ/3DQR/data/Optimization/iter_" + std::to_string(iter_count) + ".obj", verticles, facets);
-		qrcode::write_png("F:/3DQ/3DQR/data/Optimization/iter_" + std::to_string(iter_count) + ".png", simu_gray_scale);
+		igl::writeOBJ("Optimization/iter_" + std::to_string(iter_count) + ".obj", verticles, facets);
+		qrcode::write_png("Optimization/iter_" + std::to_string(iter_count) + ".png", simu_gray_scale);
 
 		std::cout << "End of iterator:" << iter_count << std::endl;
 		iter_count++;

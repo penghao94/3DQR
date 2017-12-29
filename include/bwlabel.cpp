@@ -20,6 +20,7 @@ void qrcode::bwlabel(Engine * engine, Eigen::MatrixXi & bw, int connectivity, Ei
 
 void qrcode::bwbound(Eigen::MatrixXi & label, std::vector<Eigen::MatrixXi>& bound)
 {
+
 	Eigen::MatrixXi kinds,edges;
 	igl::unique(label, kinds);
 
