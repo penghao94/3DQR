@@ -26,8 +26,8 @@ void qrcode::image_onto_mesh(igl::viewer::Viewer & viewer, GLOBAL & global)
 		}
 	}
 
-	Eigen::Vector2f center;
-	center << viewer.core.viewport(3) / 2 + (static_cast<float>(size) / 2 + scale), viewer.core.viewport(2) / 2 - (static_cast<float>(size) / 2 + scale);
+	Eigen::Vector2f center; 
+	center << viewer.core.viewport(3) / 2 + (static_cast<float>(size) / 2), viewer.core.viewport(2) / 2 - (static_cast<float>(size) / 2);
 
 	global.hitmap.resize((size + 2 * scale)*(size + 2 * scale));
 	global.source.resize(size*size, 3);

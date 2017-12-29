@@ -420,7 +420,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		int length = segment(2);
 
 
-		if (length == 1) {
+		if (length == 1/*&&modules[1]((y+border)*scale,(x+border)*scale)==1*/) {
 			int x_behind = x + length;
 			for (int u = 0; u < scale; u++) {
 
@@ -455,10 +455,43 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 				}
 			}
 		}
+		/*else {
+			int x_end = x + length - 1;
+
+			for (int u = 0; u < scale; u++) {
+
+				int index_end = global.indicator[(y + border)*scale + u][(x_end + border)*scale + scale - 1](1);
+
+				double upper_z = qr_verticals(4 * index_end + 2, 2);
+				double lower_z = qr_verticals(4 * index_end + 3, 2);
+
+				int seg_size = scale*length;
+
+				for (int v = 0; v < seg_size; v++) {
+
+					int curr_y = (y+border)*scale + u;
+					int curr_x = (x + border)*scale + v;
+
+					int index = global.indicator[curr_y][curr_x](1);
+
+					int col = qr_size + 1;
+					
+					double a = (upper_z - global.hit_matrix(curr_y*col + curr_x, 2)) / global.direct(curr_y*col + curr_x, 2);
+					double b = (lower_z - global.hit_matrix((curr_y + 1)*col + curr_x, 2)) / global.direct((curr_y + 1)*col + curr_x, 2);
+					double c = (upper_z - global.hit_matrix(curr_y*col + curr_x + 1, 2)) / global.direct(curr_y*col + curr_x + 1, 2);
+					double d = (lower_z - global.hit_matrix((curr_y + 1)*col + curr_x + 1, 2)) / global.direct((curr_y + 1)*col + curr_x + 1, 2);
+
+					qrcode::patch(curr_y, curr_x, global, Eigen::Vector4d(a, b, c, d));
+
+				}
+
+			}
+		}*/
 	}
 	qrcode::carving_down(global, qr_verticals);
 	verticles.block(0, 0, global.qr_verticals.rows(), 3) = qr_verticals;
 	std::cout << "ok1" << std::endl;
+	igl::writeOBJ("depth.obj",verticles,facets);
 
 	std::string binary_file = "reflaction";
 	igl::serialize(qr_size, "qr_size", binary_file);

@@ -17,11 +17,13 @@ void qrcode::carving_down(GLOBAL & global, Eigen::MatrixXd & result)
 
 void qrcode::patch(int y, int x, GLOBAL & global,Eigen::Vector4d &patch)
 {
+	std::cout << global.carve_depth.rows() << std::endl;
 	int index = global.indicator[y][x](1);
-	global.carve_depth(4 * index) += patch(0);
-	global.carve_depth(4 * index + 1) += patch(1);
-	global.carve_depth(4 * index + 2) += patch(2);
-	global.carve_depth(4 * index + 3) += patch(3);
+	std::cout << index << std::endl;
+	global.carve_depth(4 * index) = patch(0);
+	global.carve_depth(4 * index + 1) = patch(1);
+	global.carve_depth(4 * index + 2) = patch(2);
+	global.carve_depth(4 * index + 3) = patch(3);
 }
 
 void qrcode::patch(int y, int x, Eigen::VectorXf depth, Eigen::MatrixXi &modules,GLOBAL & global)

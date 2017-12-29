@@ -12,6 +12,7 @@
 #include<igl/writeOBJ.h>
 #include "sphere_mesh.h"
 #include "global.h"
+#include "carving_down.h"
 namespace qrcode {
 	void reflaction(GLOBAL &global, Eigen::MatrixXd &verticles, Eigen::MatrixXi&facets);
 }
