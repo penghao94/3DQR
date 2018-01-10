@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
 			viewer.data.set_mesh(V,F);
 		});
 		
-		g.latitude_upper = 45;
+		g.latitude_upper = 50;
 		viewer.ngui->addVariable("Upper latitude", g.latitude_upper);
 
 		g.latitude_lower = 40;
@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
 		g.longitude = 180;
 		viewer.ngui->addVariable("Longitude", g.longitude);
 
-		g.distance = 1000;
+		g.distance = 30;
 		viewer.ngui->addVariable("Distance", g.distance);
 
 

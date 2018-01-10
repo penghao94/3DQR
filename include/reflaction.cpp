@@ -8,10 +8,13 @@ void qrcode::reflaction(GLOBAL & global, Eigen::MatrixXd & verticles, Eigen::Mat
 	Eigen::MatrixXi black_module_seg;
 	
 	igl::deserialize(black_module_seg, "black_module_seg", binary_file);
+	
 	global.black_module_segments.clear();
 	for (int i = 0; i < black_module_seg.rows(); i++) global.black_module_segments.push_back(black_module_seg.row(i).transpose());
-	std::cout << global.black_module_segments.size() << std::endl;
 
+	std::cout << global.black_module_segments.size() << std::endl;
+	Eigen::MatrixXi modules;
+	igl::deserialize(modules, "modules", binary_file);
 	int qr_size;
 	igl::deserialize(qr_size, "qr_size", binary_file);
 	int scale;
@@ -661,5 +664,5 @@ void qrcode::reflaction(GLOBAL & global, Eigen::MatrixXd & verticles, Eigen::Mat
 	for (int i = 0; i < face_vec.size(); i++) facets.row(i) = face_vec[i];
 
 
-	igl::writeOBJ("F:/3DQ/3DQR/data/Optimization/final_model.obj", verticles, facets);
+	igl::writeOBJ("Optimization/final_model.obj", verticles, facets);
 }

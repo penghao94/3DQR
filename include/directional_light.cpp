@@ -42,13 +42,13 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 
 	V = (global.mode*(V.transpose())).transpose().block(0, 0, V.rows(), 3);
 
-	Eigen::VectorXf centroid;
+	Eigen::VectorXf centroid,centroid_valid;
 	centroid.setZero(3);
 
 	for (int i = 0; i < V.rows(); i++)  centroid = (centroid.array() + V.row(i).transpose().array()).matrix();
 
 	centroid = centroid / V.rows();
-
+	centroid_valid = centroid;
 	/*Upper light source and lower light source*/
 
 	Eigen::VectorXf upper_source(3), lower_source(3), upper_direct(3), lower_direct(3);
@@ -159,8 +159,8 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		if (modules[0](y, x) == 1)
 			depth(i) += step;
 
-		else if (modules[1](y, x) == 1)
-			depth(i) += step;
+		//else if (modules[1](y, x) == 1)
+			//depth(i) += step;
 	}
 
 
@@ -197,12 +197,12 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 			both_black_normal.push_back(qr_normal.row(i).transpose());
 
 		}
-		else if (modules[1](y, x) == 1) {
+		/*else if (modules[1](y, x) == 1) {
 			lower_black_position.push_back(qr_position.row(i).transpose());
 			lower_black_normal.push_back(qr_normal.row(i).transpose());
 			both_black_position.push_back(qr_position.row(i).transpose());
 			both_black_normal.push_back(qr_normal.row(i).transpose());
-		}
+		}*/
 		else {
 			white_position.push_back(qr_position.row(i).transpose());
 			white_normal.push_back(qr_normal.row(i).transpose());
@@ -251,6 +251,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 
 	Eigen::VectorXf white_AO;
 	qrcode::ambient_occlusion(verticles, facets, white_position, white_normal, 500, white_AO);
+	
 	std::cout << "white ambient occlusion end" << std::endl;
 
 	index_white = 0;
@@ -258,7 +259,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		int y = global.anti_indicatior[i](0);
 		int x = global.anti_indicatior[i](1);
 
-		if (modules[0](y, x) == 0 && modules[1](y, x) == 0) {
+		if (modules[0](y, x) == 0 /*&& modules[1](y, x) == 0*/) {
 			AO(y, x) = white_AO(index_white);
 
 			Eigen::Vector3f dir = (upper_source - white_position[index_white]).normalized();
@@ -282,7 +283,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 	white_average /= top10;
 
 
-
+	std::cout << "optimization begin" << std::endl;
 
 	/*Optimization*/
 
@@ -303,8 +304,8 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		qrcode::light(verticles, facets, lower_source, upper_black_position, lower_black_upper_condition);
 
 		/*ambient simulation*/
-		Eigen::VectorXf black_AO;
-		qrcode::ambient_occlusion(verticles, facets, both_black_position, both_black_normal, sphere_meshes, black_AO);
+		//Eigen::VectorXf black_AO;
+		//qrcode::ambient_occlusion(verticles, facets, both_black_position, both_black_normal, sphere_meshes, black_AO);
 
 		int index_upper_point = 0;
 		int index_lower_point = 0;
@@ -319,7 +320,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 				Eigen::Vector3f upper_dir = (upper_source - upper_black_position[index_upper_point]).normalized();
 				Eigen::Vector3f lower_dir = (lower_source - upper_black_position[index_upper_point]).normalized();
 
-				AO(y, x) = black_AO(index_both_point) > 1 ? 1 : black_AO(index_both_point);
+				//AO(y, x) = black_AO(index_both_point) > 1 ? 1 : black_AO(index_both_point);
 
 				DO_upper(y, x) = (upper_black_condition(index_upper_point) ? 1.f : 0.f)*upper_dir.dot(upper_black_normal[index_upper_point]);
 				DO_lower(y, x) = (lower_black_upper_condition(index_upper_point) ? 1.f : 0.f)*lower_dir.dot(upper_black_normal[index_upper_point]);
@@ -337,9 +338,9 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 				index_upper_point++;
 				index_both_point++;
 			}
-			else if (modules[1](y, x) == 1) {
+			/*else if (modules[1](y, x) == 1) {
 
-				AO(y, x) = black_AO(index_both_point) > 1 ? 1 : black_AO(index_both_point);
+				//AO(y, x) = black_AO(index_both_point) > 1 ? 1 : black_AO(index_both_point);
 				Eigen::Vector3f upper_dir = (upper_source - lower_black_position[index_lower_point]).normalized();
 				Eigen::Vector3f lower_dir = (lower_source - lower_black_position[index_lower_point]).normalized();
 				DO_upper(y, x) = 1.f*upper_dir.dot(lower_black_normal[index_lower_point]);
@@ -358,7 +359,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 
 				index_lower_point++;
 				index_both_point++;
-			}
+			}*/
 
 		}
 
@@ -369,8 +370,8 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 
 			if (modules[0](y, x) == 1)
 				qrcode::patch(y, x, depth, both_modules, global);
-			else if (modules[1](y, x) == 1)
-				qrcode::patch(y, x, depth, both_modules, global);
+			/*else if (modules[1](y, x) == 1)
+				qrcode::patch(y, x, depth, both_modules, global);*/
 		}
 
 		qrcode::carving_down(global, qr_verticals);
@@ -396,12 +397,12 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 				both_black_normal.push_back(qr_normal.row(i).transpose());
 
 			}
-			else if (modules[1](y, x) == 1) {
+			/*else if (modules[1](y, x) == 1) {
 				lower_black_position.push_back(qr_position.row(i).transpose());
 				lower_black_normal.push_back(qr_normal.row(i).transpose());
 				both_black_position.push_back(qr_position.row(i).transpose());
 				both_black_normal.push_back(qr_normal.row(i).transpose());
-			}
+			}*/
 		}
 		igl::writeOBJ("Optimization/iter_" + std::to_string(iter_count) + ".obj", verticles, facets);
 		qrcode::write_png("Optimization/iter_" + std::to_string(iter_count) + ".png", simu_gray_scale);
@@ -409,6 +410,177 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		std::cout << "End of iterator:" << iter_count << std::endl;
 		iter_count++;
 	}
+
+	/*Validation results*/
+	float valid1 = global.latitude_upper + 10;
+	float valid2 = (global.latitude_lower + global.latitude_upper) / 2;
+	float valid3 = global.latitude_lower - 10;
+	Eigen::VectorXf valid1_elevation(3),valid2_evelation(3),valid3_evelation(3),valid_source(3);
+
+	int index_both_point;
+
+	Eigen::MatrixXf AO_valid, DO_valid;
+	AO_valid.setOnes(qr_size, qr_size);
+	DO_valid.setOnes(qr_size, qr_size);
+
+
+	qrcode::pre_pixel_normal(global, qr_verticals, qr_position, qr_normal);
+
+	both_black_position.clear();
+	both_black_normal.clear();
+
+	for (int i = 0; i < global.anti_indicatior.size(); i++) {
+		int y = global.anti_indicatior[i](0);
+		int x = global.anti_indicatior[i](1);
+
+		if (modules[0](y, x) == 1/*|| modules[1](y, x) == 1*/) {
+			both_black_position.push_back(qr_position.row(i).transpose());
+			both_black_normal.push_back(qr_normal.row(i).transpose());
+
+		}
+		
+	}
+
+
+	valid1_elevation << std::cos(radian(valid1))*std::cos(radian(global.longitude)),
+		std::cos(radian(valid1))*std::sin(radian(global.longitude)),
+		std::sin(radian(valid1));
+
+	valid_source = centroid_valid + valid1_elevation*global.zoom*global.distance;
+
+	valid_source.conservativeResize(4);
+	valid_source(3) = 1.f;
+	valid_source = (model*valid_source).block(0, 0, 3, 1);
+
+	qrcode::light(verticles, facets, valid_source, white_position, white_condition);
+	qrcode::ambient_occlusion(verticles, facets, white_position, white_normal, 500, white_AO);
+	Eigen::Matrix<bool, Eigen::Dynamic, 1> both_valid_condition;
+	qrcode::light(verticles, facets, valid_source, both_black_position, both_valid_condition);
+
+	index_both_point = 0;
+	index_white = 0;
+
+	for (int i = 0; i < global.anti_indicatior.size(); i++) {
+		int y = global.anti_indicatior[i](0);
+		int x = global.anti_indicatior[i](1);
+
+		if (modules[0](y, x) == 0 /*&& modules[1](y, x) == 0*/) {
+			AO_valid(y, x) = white_AO(index_white);
+
+			Eigen::Vector3f valid_dir = (valid_source - white_position[index_white]).normalized();
+			DO_valid(y, x) = (white_condition(index_white) ? 1.f : 0.f)*valid_dir.dot(white_normal[index_white]);
+			simu_gray_scale(y, x) = light_to_gray(AO_valid(y, x), DO_valid(y, x));
+			index_white++;
+		}
+		else {
+			Eigen::Vector3f valid_dir = (valid_source - both_black_position[index_both_point]).normalized();
+
+			//AO(y, x) = black_AO(index_both_point) > 1 ? 1 : black_AO(index_both_point);
+
+			DO_valid(y, x) = (both_valid_condition(index_both_point) ? 1.f : 0.f)*valid_dir.dot(both_black_normal[index_both_point])*2.5;
+
+			int gray_value = light_to_gray(AO_valid(y, x), DO_valid(y, x));
+
+			simu_gray_scale(y, x) = gray_value;
+
+			index_both_point++;
+		}
+	}
+
+	qrcode::write_png("validation" + std::to_string(valid1) + ".png", simu_gray_scale);
+
+
+	valid2_evelation << std::cos(radian(valid2))*std::cos(radian(global.longitude)),
+		std::cos(radian(valid2))*std::sin(radian(global.longitude)),
+		std::sin(radian(valid2));
+	valid_source = centroid_valid + valid2_evelation*global.zoom*global.distance;
+
+	valid_source.conservativeResize(4);
+	valid_source(3) = 1.f;
+	valid_source = (model*valid_source).block(0, 0, 3, 1);
+	qrcode::light(verticles, facets, valid_source, white_position, white_condition);
+	qrcode::ambient_occlusion(verticles, facets, white_position, white_normal, 500, white_AO);
+
+
+	qrcode::light(verticles, facets, valid_source, both_black_position, both_valid_condition);
+
+	index_both_point = 0;
+	index_white = 0;
+
+	for (int i = 0; i < global.anti_indicatior.size(); i++) {
+		int y = global.anti_indicatior[i](0);
+		int x = global.anti_indicatior[i](1);
+
+		if (modules[0](y, x) == 0/* && modules[1](y, x) == 0*/) {
+			AO_valid(y, x) = white_AO(index_white);
+
+			Eigen::Vector3f valid_dir = (valid_source - white_position[index_white]).normalized();
+			DO_valid(y, x) = (white_condition(index_white) ? 1.f : 0.f)*valid_dir.dot(white_normal[index_white]);
+			simu_gray_scale(y, x) = light_to_gray(AO_valid(y, x), DO_valid(y, x));
+			index_white++;
+		}
+		else {
+			Eigen::Vector3f valid_dir = (valid_source - both_black_position[index_both_point]).normalized();
+
+			//AO(y, x) = black_AO(index_both_point) > 1 ? 1 : black_AO(index_both_point);
+
+			DO_valid(y, x) = (both_valid_condition(index_both_point) ? 1.f : 0.f)*valid_dir.dot(both_black_normal[index_both_point]);
+
+			int gray_value = light_to_gray(AO_valid(y, x), DO_valid(y, x));
+
+			simu_gray_scale(y, x) = gray_value;
+
+			index_both_point++;
+		}
+	}
+	qrcode::write_png("validation" + std::to_string(valid2) + ".png", simu_gray_scale);
+
+	valid3_evelation << std::cos(radian(valid3))*std::cos(radian(global.longitude)),
+		std::cos(radian(valid3))*std::sin(radian(global.longitude)),
+		std::sin(radian(valid3));
+
+	valid_source = centroid_valid + valid3_evelation*global.zoom*global.distance;
+
+	valid_source.conservativeResize(4);
+	valid_source(3) = 1.f;
+	valid_source = (model*valid_source).block(0, 0, 3, 1);
+	qrcode::light(verticles, facets, valid_source, white_position, white_condition);
+	qrcode::ambient_occlusion(verticles, facets, white_position, white_normal, 500, white_AO);
+
+	qrcode::light(verticles, facets, valid_source, both_black_position, both_valid_condition);
+
+	index_both_point = 0;
+	index_white = 0;
+
+	for (int i = 0; i < global.anti_indicatior.size(); i++) {
+		int y = global.anti_indicatior[i](0);
+		int x = global.anti_indicatior[i](1);
+
+		if (modules[0](y, x) == 0/* && modules[1](y, x) == 0*/) {
+			AO_valid(y, x) = white_AO(index_white);
+
+			Eigen::Vector3f valid_dir = (valid_source - white_position[index_white]).normalized();
+			DO_valid(y, x) = (white_condition(index_white) ? 1.f : 0.f)*valid_dir.dot(white_normal[index_white]);
+			simu_gray_scale(y, x) = light_to_gray(AO_valid(y, x), DO_valid(y, x));
+			index_white++;
+		}
+		else {
+			Eigen::Vector3f valid_dir = (valid_source - both_black_position[index_both_point]).normalized();
+
+			//AO(y, x) = black_AO(index_both_point) > 1 ? 1 : black_AO(index_both_point);
+
+			DO_valid(y, x) = (both_valid_condition(index_both_point) ? 1.f : 0.f)*valid_dir.dot(both_black_normal[index_both_point]);
+
+			int gray_value = light_to_gray(AO_valid(y, x), DO_valid(y, x));
+
+			simu_gray_scale(y, x) = gray_value;
+
+			index_both_point++;
+		}
+	}
+	qrcode::write_png("validation" + std::to_string(valid3) + ".png", simu_gray_scale);
+
+
 
 	int bound = global.info.pixels.size();
 
@@ -420,16 +592,19 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		int length = segment(2);
 
 
-		if (length == 1/*&&modules[1]((y+border)*scale,(x+border)*scale)==1*/) {
+		if (length == 1&& modules[1]((y + 1 + border)*scale, (x + border)*scale) == 0 && modules[1]((y - 1 + border)*scale, (x + border)*scale) == 0) {
 			int x_behind = x + length;
 			for (int u = 0; u < scale; u++) {
 
 				int origin_index = global.indicator[(y + border)*scale + u][(x + border)*scale + scale - 1](1);
 				int end_index = global.indicator[(y + border)*scale + u][(x_behind + border)*scale + scale - 1](1);
-				double origin_upper_point = qr_verticals(4 * origin_index + 2, 2);
-				double origin_lower_point = qr_verticals(4 * origin_index + 3, 2);
+
 				double end_upper_point = qr_verticals(4 * end_index + 2, 2);
 				double end_lower_point = qr_verticals(4 * end_index + 3, 2);
+
+				double origin_upper_point = (end_upper_point + qr_verticals(4 * origin_index + 2, 2))*0.5;
+				double origin_lower_point = (end_upper_point + qr_verticals(4 * origin_index + 3, 2))*0.5;
+				
 
 				double diff_upper = (origin_upper_point - end_upper_point) / scale;
 				double diff_lower = (origin_lower_point - end_lower_point) / scale;
@@ -455,7 +630,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 				}
 			}
 		}
-		/*else {
+		else if(length == 1&&(modules[1]((y+1+border)*scale,(x+border)*scale)==1|| modules[1]((y - 1 + border)*scale, (x + border)*scale) == 1)){
 			int x_end = x + length - 1;
 
 			for (int u = 0; u < scale; u++) {
@@ -486,7 +661,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 				}
 
 			}
-		}*/
+		}
 	}
 	qrcode::carving_down(global, qr_verticals);
 	verticles.block(0, 0, global.qr_verticals.rows(), 3) = qr_verticals;
@@ -499,6 +674,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 	igl::serialize(border, "border", binary_file);
 	igl::serialize(qr_verticals, "qr_verticals", binary_file);
 	igl::serialize(verticles, "verticles", binary_file);
-	igl::serialize(facets, "facets", binary_file); }
+	igl::serialize(facets, "facets", binary_file); 
+	igl::serialize(modules[1], "modules", binary_file);
 
-
+}

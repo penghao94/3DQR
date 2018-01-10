@@ -44,7 +44,7 @@ void qrcode::ambient_occlusion(Eigen::MatrixXd & verticles, Eigen::MatrixXi & fa
 		}
 		result(p) = b / a;
 	};
-	igl::parallel_for(n, inner, 1000);
+	//igl::parallel_for(n, inner, 1000);
 
 
 	//ei.global_deinit();
@@ -118,21 +118,22 @@ void qrcode::ambient_occlusion( Eigen::MatrixXd & verticles, Eigen::MatrixXi & f
 				sum += temp;
 
 		}
+		std::cout<<std::endl;
 
 		area(p) = Angle.sum() - f.rows()*igl::PI;
 		if (area(p) > 6.28315f) area(p) = 6.28315f;
 		if (area(p) < 2 * igl::PI*1e-5f) area(p) = 2 * igl::PI*1e-5f;
-		if (area(p) == FP_NAN) area(p) = 6.28315f*static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+		if (area(p) == FP_NAN) area(p) = 6.28315f*static_cast<float>(rand()) / static_cast<float>(RAND_MAX);  
+		std::cout << area(p) << std::endl;
 
 		const int sample = std::round(5* log10(area(p) / 2 / igl::PI / 1e-5));
 		ratio(p) = static_cast<float>(igl::PI / area(p)*sample*sample);
 		qrcode::random_points_on_spherical_mesh(origin, v, f, sample*sample, points[p]);
 	};
 
-	igl::parallel_for(n, rander, 1000);
-	//for (int i = 0; i < n; i++) rander(i);
+	//igl::parallel_for(n, rander, 1000);
+	for (int i = 0; i < n; i++) rander(i);
 	result.resize(n);
-	
 	const auto & inner = [&position, &normal, &points, &result, &ratio, &area, &shoot_ray](const int p)
 	{
 		const Eigen::Vector3f origin = position[p];
