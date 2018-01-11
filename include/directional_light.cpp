@@ -159,8 +159,8 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		if (modules[0](y, x) == 1)
 			depth(i) += step;
 
-		//else if (modules[1](y, x) == 1)
-			//depth(i) += step;
+		 else if (modules[1](y, x) == 1)
+			depth(i) += step;
 	}
 
 
@@ -197,12 +197,12 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 			both_black_normal.push_back(qr_normal.row(i).transpose());
 
 		}
-		/*else if (modules[1](y, x) == 1) {
+		else if (modules[1](y, x) == 1) {
 			lower_black_position.push_back(qr_position.row(i).transpose());
 			lower_black_normal.push_back(qr_normal.row(i).transpose());
 			both_black_position.push_back(qr_position.row(i).transpose());
 			both_black_normal.push_back(qr_normal.row(i).transpose());
-		}*/
+		}
 		else {
 			white_position.push_back(qr_position.row(i).transpose());
 			white_normal.push_back(qr_normal.row(i).transpose());
@@ -259,7 +259,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		int y = global.anti_indicatior[i](0);
 		int x = global.anti_indicatior[i](1);
 
-		if (modules[0](y, x) == 0 /*&& modules[1](y, x) == 0*/) {
+		if (modules[0](y, x) == 0 && modules[1](y, x) == 0) {
 			AO(y, x) = white_AO(index_white);
 
 			Eigen::Vector3f dir = (upper_source - white_position[index_white]).normalized();
@@ -338,7 +338,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 				index_upper_point++;
 				index_both_point++;
 			}
-			/*else if (modules[1](y, x) == 1) {
+			else if (modules[1](y, x) == 1) {
 
 				//AO(y, x) = black_AO(index_both_point) > 1 ? 1 : black_AO(index_both_point);
 				Eigen::Vector3f upper_dir = (upper_source - lower_black_position[index_lower_point]).normalized();
@@ -359,7 +359,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 
 				index_lower_point++;
 				index_both_point++;
-			}*/
+			}
 
 		}
 
@@ -370,8 +370,8 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 
 			if (modules[0](y, x) == 1)
 				qrcode::patch(y, x, depth, both_modules, global);
-			/*else if (modules[1](y, x) == 1)
-				qrcode::patch(y, x, depth, both_modules, global);*/
+			else if (modules[1](y, x) == 1)
+				qrcode::patch(y, x, depth, both_modules, global);
 		}
 
 		qrcode::carving_down(global, qr_verticals);
@@ -397,12 +397,12 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 				both_black_normal.push_back(qr_normal.row(i).transpose());
 
 			}
-			/*else if (modules[1](y, x) == 1) {
+			else if (modules[1](y, x) == 1) {
 				lower_black_position.push_back(qr_position.row(i).transpose());
 				lower_black_normal.push_back(qr_normal.row(i).transpose());
 				both_black_position.push_back(qr_position.row(i).transpose());
 				both_black_normal.push_back(qr_normal.row(i).transpose());
-			}*/
+			}
 		}
 		igl::writeOBJ("Optimization/iter_" + std::to_string(iter_count) + ".obj", verticles, facets);
 		qrcode::write_png("Optimization/iter_" + std::to_string(iter_count) + ".png", simu_gray_scale);
@@ -433,7 +433,9 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		int y = global.anti_indicatior[i](0);
 		int x = global.anti_indicatior[i](1);
 
-		if (modules[0](y, x) == 1/*|| modules[1](y, x) == 1*/) {
+		if (modules[0](y, x) == 1|| modules[1](y, x) == 1) {
+			upper_black_position.push_back(qr_position.row(i).transpose());
+			upper_black_normal.push_back(qr_normal.row(i).transpose());
 			both_black_position.push_back(qr_position.row(i).transpose());
 			both_black_normal.push_back(qr_normal.row(i).transpose());
 
@@ -464,7 +466,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		int y = global.anti_indicatior[i](0);
 		int x = global.anti_indicatior[i](1);
 
-		if (modules[0](y, x) == 0 /*&& modules[1](y, x) == 0*/) {
+		if (modules[0](y, x) == 0 && modules[1](y, x) == 0) {
 			AO_valid(y, x) = white_AO(index_white);
 
 			Eigen::Vector3f valid_dir = (valid_source - white_position[index_white]).normalized();
@@ -511,7 +513,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		int y = global.anti_indicatior[i](0);
 		int x = global.anti_indicatior[i](1);
 
-		if (modules[0](y, x) == 0/* && modules[1](y, x) == 0*/) {
+		if (modules[0](y, x) == 0 && modules[1](y, x) == 0) {
 			AO_valid(y, x) = white_AO(index_white);
 
 			Eigen::Vector3f valid_dir = (valid_source - white_position[index_white]).normalized();
@@ -556,7 +558,7 @@ void qrcode::directional_light(igl::viewer::Viewer & viewer, Engine * engine, GL
 		int y = global.anti_indicatior[i](0);
 		int x = global.anti_indicatior[i](1);
 
-		if (modules[0](y, x) == 0/* && modules[1](y, x) == 0*/) {
+		if (modules[0](y, x) == 0 && modules[1](y, x) == 0) {
 			AO_valid(y, x) = white_AO(index_white);
 
 			Eigen::Vector3f valid_dir = (valid_source - white_position[index_white]).normalized();
